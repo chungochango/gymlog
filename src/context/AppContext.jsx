@@ -6,9 +6,14 @@ import { reducer, newEntry } from './store'
 
 const AppContext = createContext(null)
 
+// Built-in exercises always take the current name, so renames reach existing installs.
+const DEFAULT_NAMES = new Map(DEFAULT_EXERCISES.map((e) => [e.id, e.name]))
+const withCurrentNames = (exercises) =>
+  exercises.map((e) => (!e.custom && DEFAULT_NAMES.has(e.id) ? { ...e, name: DEFAULT_NAMES.get(e.id) } : e))
+
 function init() {
   return {
-    exercises: load('exercises', DEFAULT_EXERCISES),
+    exercises: withCurrentNames(load('exercises', DEFAULT_EXERCISES)),
     routines: load('routines', DEFAULT_ROUTINES),
     workouts: load('workouts', []),
     active: load('active', null),
@@ -117,6 +122,7 @@ export function AppProvider({ children }) {
         }
         const data = Object.fromEntries(BACKUP_KEYS.filter((k) => k in backup.data).map((k) => [k, backup.data[k]]))
         if (data.settings) data.settings = { ...DEFAULT_SETTINGS, ...data.settings }
+        if (Array.isArray(data.exercises)) data.exercises = withCurrentNames(data.exercises)
         dispatch({ type: 'data/import', data })
       },
     }

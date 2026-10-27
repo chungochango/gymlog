@@ -1,20 +1,61 @@
 export const MUSCLE_GROUPS = ['Pecho', 'Espalda', 'Piernas', 'Hombros', 'Bíceps', 'Tríceps', 'Core']
 
+// [id, name]: ids stay fixed so renaming never breaks history or routines.
 const seed = {
-  Pecho: ['Press banca', 'Press inclinado con mancuernas', 'Aperturas con mancuernas', 'Cruce de poleas', 'Fondos en paralelas', 'Flexiones'],
-  Espalda: ['Dominadas', 'Remo con barra', 'Jalón al pecho', 'Remo con mancuerna', 'Remo en polea baja', 'Peso muerto'],
-  Piernas: ['Sentadilla', 'Prensa', 'Peso muerto rumano', 'Zancadas', 'Extensión de cuádriceps', 'Curl femoral', 'Elevación de gemelos'],
-  Hombros: ['Press militar', 'Press con mancuernas sentado', 'Elevaciones laterales', 'Pájaros', 'Face pull'],
-  'Bíceps': ['Curl con barra', 'Curl con mancuernas', 'Curl martillo', 'Curl en banco Scott'],
-  'Tríceps': ['Press francés', 'Extensión en polea', 'Press cerrado', 'Extensión sobre la cabeza'],
-  Core: ['Plancha', 'Crunch en polea', 'Elevación de piernas colgado', 'Rueda abdominal'],
+  Pecho: [
+    ['press-banca', 'Press de banca con barra'],
+    ['press-inclinado-con-mancuernas', 'Press inclinado con mancuernas'],
+    ['aperturas-con-mancuernas', 'Aperturas con mancuernas'],
+    ['cruce-de-poleas', 'Cruce de poleas'],
+    ['fondos-en-paralelas', 'Fondos en paralelas'],
+    ['flexiones', 'Flexiones'],
+  ],
+  Espalda: [
+    ['dominadas', 'Dominadas'],
+    ['remo-con-barra', 'Remo con barra'],
+    ['jalon-al-pecho', 'Jalón al pecho'],
+    ['remo-con-mancuerna', 'Remo con mancuerna a una mano'],
+    ['remo-en-polea-baja', 'Remo sentado en polea baja'],
+    ['peso-muerto', 'Peso muerto'],
+  ],
+  Piernas: [
+    ['sentadilla', 'Sentadilla con barra'],
+    ['prensa', 'Prensa de piernas'],
+    ['peso-muerto-rumano', 'Peso muerto rumano'],
+    ['zancadas', 'Zancadas'],
+    ['extension-de-cuadriceps', 'Extensión de cuádriceps en máquina'],
+    ['curl-femoral', 'Curl femoral en máquina'],
+    ['elevacion-de-gemelos', 'Elevación de gemelos'],
+  ],
+  Hombros: [
+    ['press-militar', 'Press militar con barra'],
+    ['press-con-mancuernas-sentado', 'Press de hombros con mancuernas'],
+    ['elevaciones-laterales', 'Elevaciones laterales'],
+    ['pajaros', 'Elevaciones posteriores con mancuernas'],
+    ['face-pull', 'Face pull en polea (tirón a la cara)'],
+  ],
+  'Bíceps': [
+    ['curl-con-barra', 'Curl con barra'],
+    ['curl-con-mancuernas', 'Curl con mancuernas'],
+    ['curl-martillo', 'Curl martillo'],
+    ['curl-en-banco-scott', 'Curl en banco Scott'],
+  ],
+  'Tríceps': [
+    ['press-frances', 'Press francés con barra Z'],
+    ['extension-en-polea', 'Extensión de tríceps en polea'],
+    ['press-cerrado', 'Press de banca con agarre cerrado'],
+    ['extension-sobre-la-cabeza', 'Extensión de tríceps tras nuca'],
+  ],
+  Core: [
+    ['plancha', 'Plancha abdominal'],
+    ['crunch-en-polea', 'Crunch abdominal en polea'],
+    ['elevacion-de-piernas-colgado', 'Elevación de piernas colgado'],
+    ['rueda-abdominal', 'Rueda abdominal'],
+  ],
 }
 
-const slug = (s) =>
-  s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-')
-
 export const DEFAULT_EXERCISES = Object.entries(seed).flatMap(([muscle, names]) =>
-  names.map((name) => ({ id: `ex-${slug(name)}`, name, muscle, custom: false })),
+  names.map(([id, name]) => ({ id: `ex-${id}`, name, muscle, custom: false })),
 )
 
 export const DEFAULT_ROUTINES = [
