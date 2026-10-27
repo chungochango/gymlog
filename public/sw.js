@@ -1,6 +1,6 @@
 // Offline support for the gym (poor signal): network-first for the page so updates
 // arrive, cache-first for hashed assets and fonts.
-const CACHE = 'gymlog-v1'
+const CACHE = 'gymlog-v2'
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(['./', './index.html'])))

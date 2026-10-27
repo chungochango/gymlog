@@ -11,6 +11,7 @@ import CardioForm from '../components/CardioForm'
 import FoodForm from '../components/FoodForm'
 import GoalsForm from '../components/GoalsForm'
 import SettingsModal from '../components/SettingsModal'
+import { LogoTile } from '../components/Logo'
 import { Button, Card, EmptyState, PageHeader, Stat, cn } from '../components/ui'
 
 const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D']
@@ -44,6 +45,7 @@ export default function Dashboard() {
   return (
     <>
       <PageHeader
+        back={<LogoTile className="mr-1" />}
         subtitle={greeting()}
         title="Tu entrenamiento"
         action={
