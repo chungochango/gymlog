@@ -7,6 +7,7 @@ import { dayKey, formatClock, formatDuration, formatNumber, formatVolume, relati
 import { bestSet, cardioSummary, summary, weekActivity, workoutDuration, workoutSetCount, workoutVolume } from '../lib/stats'
 import { MACROS, mealForNow, sumNutrition } from '../data/nutrition'
 import { achievements, weeklyStreak } from '../lib/achievements'
+import { baseBurn, exerciseKcal } from '../lib/metabolism'
 import BodyWeightCard from '../components/BodyWeightCard'
 import RecoveryCard from '../components/RecoveryCard'
 import CardioCard from '../components/CardioCard'
@@ -44,6 +45,8 @@ export default function Dashboard() {
   const lastCardio = state.cardio[0]
   const { goals } = state.settings
   const eaten = sumNutrition(state.foods.filter((f) => f.day === dayKey()))
+  const base = baseBurn(state.settings)
+  const burn = base && { balance: base.total + exerciseKcal(state, dayKey()) - eaten.kcal }
   const streak = weeklyStreak(state.workouts, state.cardio, state.settings.weeklyGoal ?? 3)
   const medals = achievements(state).filter((a) => a.unlocked).length
 
@@ -155,6 +158,14 @@ export default function Dashboard() {
               style={{ width: `${Math.min(100, (eaten.kcal / goals.kcal) * 100)}%` }}
             />
           </div>
+          {burn && (
+            <p className="mt-2 text-xs text-muted tabular">
+              {burn.balance >= 0 ? 'Déficit' : 'Superávit'} estimado hoy:{' '}
+              <span className={cn('font-semibold', burn.balance >= 0 ? 'text-accent' : 'text-danger')}>
+                {formatNumber(Math.abs(burn.balance))} kcal
+              </span>
+            </p>
+          )}
           <div className="mt-3 flex justify-between text-xs text-muted tabular">
             {MACROS.map((m) => (
               <span key={m.id} className="flex items-center gap-1.5">

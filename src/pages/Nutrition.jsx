@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { BookmarkPlus, ChevronLeft, ChevronRight, Plus, Target } from 'lucide-react'
+import { BookmarkPlus, ChevronLeft, ChevronRight, Flame, Plus, Target } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { MACROS, MEALS, mealForNow, sumNutrition } from '../data/nutrition'
 import { dayKey, dayKeyToTime, formatDate, formatNumber, relativeDay, shiftDay } from '../lib/format'
+import { baseBurn, exerciseKcal } from '../lib/metabolism'
 import FoodForm from '../components/FoodForm'
 import GoalsForm from '../components/GoalsForm'
 import { Button, Card, PageHeader, cn } from '../components/ui'
@@ -21,12 +22,13 @@ export default function Nutrition() {
   const { goals } = state.settings
   const entries = useMemo(() => state.foods.filter((f) => f.day === day), [state.foods, day])
   const totals = sumNutrition(entries)
-  // Calories burned that day: cardio entries plus strength sessions with Apple Watch data.
-  const burned =
-    state.cardio.filter((c) => dayKey(c.startedAt) === day).reduce((s, c) => s + (c.kcal || 0), 0) +
-    state.workouts.filter((w) => dayKey(w.startedAt) === day).reduce((s, w) => s + (w.watch?.kcal || 0), 0)
+  const burned = exerciseKcal(state, day)
   const remaining = goals.kcal - totals.kcal + burned
   const progress = Math.min(1, totals.kcal / Math.max(1, goals.kcal + burned))
+  // Energy balance: what the body burns on its own (BMR × everyday activity) plus exercise, minus food.
+  const base = baseBurn(state.settings)
+  const spent = base ? base.total + burned : null
+  const balance = spent != null ? spent - totals.kcal : null
 
   const goTo = (key) => setParams(key === today ? {} : { day: key }, { replace: true })
   const dayLabel = relativeDay(dayKeyToTime(day))
@@ -97,6 +99,40 @@ export default function Nutrition() {
             )
           })}
         </div>
+
+        {base ? (
+          <div className="mt-4 border-t border-line pt-4">
+            <p className="mb-2 flex items-center gap-1.5 text-sm font-medium"><Flame size={15} className="text-accent" /> Balance del día</p>
+            <dl className="space-y-1.5 text-sm tabular">
+              <Row label="Metabolismo y día a día" value={`${formatNumber(base.total)} kcal`} />
+              <Row label="Ejercicio" value={`+ ${formatNumber(burned)} kcal`} accent={burned > 0} />
+              <Row label="Comido" value={`− ${formatNumber(totals.kcal)} kcal`} />
+            </dl>
+            <div
+              className={cn(
+                'mt-3 flex items-baseline justify-between rounded-xl px-3 py-2.5',
+                balance >= 0 ? 'bg-accent-soft' : 'bg-danger-soft',
+              )}
+            >
+              <span className="text-sm font-semibold">{balance >= 0 ? 'Déficit' : 'Superávit'}</span>
+              <span className={cn('text-lg font-bold tabular', balance >= 0 ? 'text-accent' : 'text-danger')}>
+                {formatNumber(Math.abs(balance))} kcal
+              </span>
+            </div>
+            <p className="mt-1.5 text-xs text-faint">
+              {day === today ? 'Estimado para el día completo: ' : ''}gastas {formatNumber(spent)} kcal en total (basal {formatNumber(base.basal)}).
+            </p>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setGoalsOpen(true)}
+            className="mt-4 flex w-full items-center gap-2 rounded-xl bg-surface-2 px-3 py-3 text-left text-sm text-muted hover:bg-surface-3"
+          >
+            <Flame size={16} className="shrink-0 text-accent" />
+            Añade sexo, altura y edad para ver lo que quema tu cuerpo solo y tu déficit real.
+          </button>
+        )}
       </Card>
 
       <Button variant="primary" size="lg" className="mt-4 w-full" onClick={() => setForm({ meal: mealForNow() })}>

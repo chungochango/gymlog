@@ -45,6 +45,7 @@ export const DEFAULT_SETTINGS = {
   bodyWeight: 75,
   weeklyGoal: 3, // sessions (strength + cardio) per week, drives the streak
   goals: { kcal: 2200, protein: 140, carbs: 250, fat: 70 },
+  profile: { sex: null, age: null, height: null, activity: 'sedentary' }, // for the BMR
 }
 
 export const REST_PRESETS = [30, 60, 90, 120, 180, 240]

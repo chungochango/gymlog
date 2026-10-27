@@ -18,7 +18,9 @@ export default function Layout() {
   const { pathname } = useLocation()
 
   // Each screen opens at the top instead of keeping the previous scroll position.
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
 
   return (
     <div className="min-h-dvh">
