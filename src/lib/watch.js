@@ -26,4 +26,17 @@ export function parseWatchText(text) {
   return data.avgHr || data.maxHr || data.kcal ? data : null
 }
 
-export const hasWatchData = (d) => !!(d && (d.avgHr || d.maxHr || d.kcal))
+/** Human explanation of why clipboard text couldn't be imported. */
+export function diagnoseWatchText(text) {
+  const raw = (text ?? '').trim()
+  const shown = `«${raw.slice(0, 60) || 'vacío'}»`
+  if (!/GYMLOG/i.test(raw)) {
+    return `El portapapeles no tiene datos del Atajo (${shown}). Ejecuta el Atajo primero.`
+  }
+  if (/media|maximo|máximo|kcal/i.test(raw)) {
+    return `El bloque Texto del Atajo tiene palabras escritas en vez de variables (${shown}). Bórralas e inserta las variables Media, Maximo y Kcal.`
+  }
+  return `El Atajo funciona, pero no encontró pulsaciones ni calorías en ese tiempo (${shown}). Revisa en el iPhone: Ajustes → Salud → Acceso a datos y dispositivos → Atajos, y activa Frecuencia cardíaca y Energía en actividad. Comprueba también que llevabas el reloj puesto.`
+}
+
+export const hasWatchData =(d) => !!(d && (d.avgHr || d.maxHr || d.kcal))

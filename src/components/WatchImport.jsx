@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ClipboardPaste, HeartPulse, Pencil, Watch } from 'lucide-react'
-import { hasWatchData, parseWatchText, shortcutUrl } from '../lib/watch'
+import { diagnoseWatchText, hasWatchData, parseWatchText, shortcutUrl } from '../lib/watch'
 import { Button, Input, cn } from './ui'
 
 /**
@@ -24,9 +24,10 @@ export default function WatchImport({ start, end, data, onApply, className }) {
   const paste = async () => {
     setError(null)
     try {
-      const parsed = parseWatchText(await navigator.clipboard.readText())
+      const text = await navigator.clipboard.readText()
+      const parsed = parseWatchText(text)
       if (parsed) apply(parsed)
-      else setError('El portapapeles no tiene datos del Atajo. Ejecuta el Atajo primero.')
+      else setError(diagnoseWatchText(text))
     } catch {
       setError('No se pudo leer el portapapeles. Introduce los datos a mano.')
       setManual(true)

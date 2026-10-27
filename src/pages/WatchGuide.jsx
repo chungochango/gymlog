@@ -1,21 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ClipboardPaste, HeartPulse, Watch } from 'lucide-react'
-import { SHORTCUT_NAME, parseWatchText, shortcutUrl } from '../lib/watch'
+import { SHORTCUT_NAME, diagnoseWatchText, parseWatchText, shortcutUrl } from '../lib/watch'
 import { Button, Card, PageHeader } from '../components/ui'
 
-// Spanish iOS action names, as they appear in the Shortcuts app search.
+// Spanish iOS action names, as they appear in the Shortcuts app (iOS 18).
 const STEPS = [
   <>Abre <b>Atajos</b>, pulsa <b>+</b> y nombra el atajo exactamente <Code>{SHORTCUT_NAME}</Code>.</>,
   <>Añade <b>Dividir texto</b>. Entrada: <Var>Entrada del atajo</Var>. Separador: <b>Personalizado</b> → <Code>|</Code></>,
-  <>Añade <b>Obtener elemento de la lista</b> → <b>Primer elemento</b> de <Var>Texto dividido</Var>.</>,
-  <>Añade <b>Ajustar fecha</b>: <b>Restar</b> <Var>Elemento de la lista</Var> <b>minutos</b> de <Var>Fecha actual</Var>. Luego <b>Definir variable</b> con el nombre <Code>Inicio</Code>.</>,
-  <>Añade otra vez <b>Obtener elemento de la lista</b> → <b>Último elemento</b> de <Var>Texto dividido</Var>, y repite <b>Ajustar fecha</b> igual que antes. Guárdalo con <b>Definir variable</b> como <Code>Fin</Code>.</>,
-  <>Añade <b>Buscar muestras de salud</b> con <b>todas</b> estas condiciones: Tipo es <b>Frecuencia cardíaca</b> · Fecha de inicio es <b>posterior a</b> <Var>Inicio</Var> · Fecha de inicio es <b>anterior a</b> <Var>Fin</Var>.</>,
-  <>Añade <b>Calcular estadísticas</b> → <b>Media</b> de <Var>Muestras de salud</Var>, luego <b>Redondear número</b> y <b>Definir variable</b> <Code>Media</Code>.</>,
-  <>Añade otra vez <b>Calcular estadísticas</b> → <b>Máximo</b> (toca la entrada y elige <Var>Muestras de salud</Var>), <b>Redondear número</b> y <b>Definir variable</b> <Code>Maximo</Code>.</>,
-  <>Añade otra <b>Buscar muestras de salud</b> con Tipo <b>Energía activa</b> y las mismas dos condiciones de fecha. Después <b>Calcular estadísticas</b> → <b>Suma</b>, <b>Redondear número</b> y <b>Definir variable</b> <Code>Kcal</Code>.</>,
-  <>Añade <b>Texto</b> y escribe <Code>GYMLOG;</Code><Var>Media</Var><Code>;</Code><Var>Maximo</Var><Code>;</Code><Var>Kcal</Var> (sin espacios).</>,
+  <>Añade <b>Obtener ítem de la lista</b> (búscalo escribiendo «lista») → <b>Primer ítem</b> de <Var>Texto dividido</Var>.</>,
+  <>Añade <b>Ajustar fecha</b>: <b>Restar</b> <Var>Ítem de la lista</Var> <b>minutos desde</b> <Var>Fecha actual</Var>. Luego <b>Definir variable</b> con el nombre <Code>Inicio</Code>.</>,
+  <>Añade otra vez <b>Obtener ítem de la lista</b> → <b>Último ítem</b> de <Var>Texto dividido</Var>, y repite <b>Ajustar fecha</b> igual que antes. Guárdalo con <b>Definir variable</b> como <Code>Fin</Code>.</>,
+  <>Añade <b>Buscar muestras de salud</b> (aparece como «Buscar Muestras médicas») con <b>todas</b> estas condiciones: Tipo es <b>Frecuencia cardíaca</b> · Fecha de inicio es <b>posterior a</b> <Var>Inicio</Var> · Fecha de inicio es <b>anterior a</b> <Var>Fin</Var>.</>,
+  <>Añade <b>Calcular estadísticas</b> → <b>Media</b> de <Var>Muestras médicas</Var>, luego <b>Redondear número</b> y <b>Definir variable</b> <Code>Media</Code>.</>,
+  <>Añade otra vez <b>Calcular estadísticas</b> → <b>Máximo</b> (toca la entrada y elige <Var>Muestras médicas</Var>), <b>Redondear número</b> y <b>Definir variable</b> <Code>Maximo</Code>.</>,
+  <>Añade otra <b>Buscar muestras de salud</b> con Tipo <b>Energía en actividad</b> y las mismas dos condiciones de fecha. Después <b>Calcular estadísticas</b> → <b>Suma</b>, <b>Redondear número</b> y <b>Definir variable</b> <Code>Kcal</Code>.</>,
+  <>Añade <b>Texto</b>: escribe <Code>GYMLOG;</Code> e inserta la <b>variable</b> <Var>Media</Var>, escribe <Code>;</Code>, variable <Var>Maximo</Var>, <Code>;</Code>, variable <Var>Kcal</Var>. Las variables se eligen en la fila de encima del teclado y salen como etiquetas de color: no las escribas a mano.</>,
   <>Añade <b>Copiar al portapapeles</b> con ese <Var>Texto</Var>. Opcional: <b>Mostrar notificación</b> «Vuelve a GymLog y pulsa Pegar datos».</>,
 ]
 
@@ -27,7 +27,7 @@ export default function WatchGuide() {
     try {
       const text = await navigator.clipboard.readText()
       const parsed = parseWatchText(text)
-      setResult(parsed ? { ok: true, ...parsed } : { ok: false, text: `El portapapeles contiene: «${text.slice(0, 60)}». Revisa el paso 10.` })
+      setResult(parsed ? { ok: true, ...parsed } : { ok: false, text: diagnoseWatchText(text) })
     } catch {
       setResult({ ok: false, text: 'Este navegador no deja leer el portapapeles. Funciona en la versión publicada (https).' })
     }
@@ -66,7 +66,7 @@ export default function WatchGuide() {
         ))}
       </ol>
       <p className="mt-3 text-xs text-faint">
-        La primera vez iOS pedirá permiso para leer Frecuencia cardíaca y Energía activa de Salud, y para usar el portapapeles: acepta ambos.
+        La primera vez iOS pedirá permiso para leer Frecuencia cardíaca y Energía activa de Salud, y para usar el portapapeles: acepta ambos. Si no te lo preguntó, actívalo en Ajustes → Salud → Acceso a datos y dispositivos → Atajos.
       </p>
 
       <h2 className="mt-8 mb-1 text-lg font-bold tracking-tight">Probarlo</h2>
