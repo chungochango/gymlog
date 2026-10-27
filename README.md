@@ -22,10 +22,9 @@ Funciona sin conexión gracias a `public/sw.js`, y las rutas usan `#/` para no d
 
 ## Apple Watch
 
-Las apps web no pueden leer HealthKit, así que los datos llegan con el Atajo «GymLog Salud»
-(guía paso a paso dentro de la app: Ajustes → Apple Watch). La app abre el Atajo con la ventana
-de tiempo de la sesión; el Atajo lee Frecuencia cardíaca y Energía activa de Salud y copia
-`GYMLOG;media;máx;kcal` al portapapeles; en la app se pulsa «Pegar datos».
+Las apps web no pueden leer HealthKit, así que la FC media, la FC máxima y las calorías activas se
+apuntan a mano desde la app Fitness (Entrenamientos → sesión), en el detalle de cada entreno o en
+el formulario de cardio.
 
 ## Estructura
 
@@ -46,7 +45,6 @@ src/
 │   ├── stats.js             # Volumen, mejores series, historial de peso máximo, resumen semanal
 │   ├── format.js            # Fechas, duraciones, números en es-ES, parseo "62,5"
 │   └── alerts.js            # Pitido (Web Audio) y vibración al terminar el descanso
-├── lib/watch.js             # Enlace al Atajo y lectura de sus datos (Apple Watch)
 ├── hooks/useNow.js          # Reloj que re-renderiza cada segundo (cronómetros)
 ├── components/
 │   ├── Layout.jsx           # Contenedor + barra de navegación inferior
@@ -56,14 +54,13 @@ src/
 │   ├── ProgressChart.jsx    # Gráfica SVG de peso máximo por sesión
 │   ├── CardioForm.jsx, CardioCard.jsx   # Registrar / mostrar cardio
 │   ├── FoodForm.jsx, GoalsForm.jsx      # Añadir alimentos / objetivos y peso
-│   ├── WatchImport.jsx      # Tarjeta Apple Watch: importar con Atajos, pegar o a mano
+│   ├── WatchStats.jsx       # Pulsaciones y calorías de una sesión (a mano)
 │   ├── WorkoutCard.jsx, SettingsModal.jsx, Modal.jsx, ui.jsx
 └── pages/
     ├── Dashboard.jsx        # Resumen, semana, estadísticas, última sesión
     ├── StartWorkout.jsx     # Entrenamiento libre o rutina; crear rutinas
     ├── Workout.jsx          # Sesión en vivo
     ├── Exercises.jsx        # Biblioteca por grupo muscular; ejercicios propios
-    ├── WatchGuide.jsx       # Guía para crear el Atajo y probarlo
     ├── Nutrition.jsx        # Diario de comidas, calorías restantes y macros
     ├── History.jsx          # Historial de fuerza y cardio por meses + gráfica de progreso
     └── WorkoutDetail.jsx    # Detalle de una sesión, récords, guardar como rutina

@@ -1,6 +1,5 @@
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
-import { ChevronRight, Download, Target, Upload, Watch } from 'lucide-react'
+import { ChevronRight, Download, Target, Upload } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { REST_PRESETS } from '../data/defaults'
 import { beep, primeAudio, vibrate } from '../lib/alerts'
@@ -58,19 +57,6 @@ export default function SettingsModal({ open, onClose, onOpenGoals }) {
         </span>
         <ChevronRight size={18} className="text-faint" />
       </button>
-
-      <Link
-        to="/watch"
-        onClick={onClose}
-        className="-mt-3 mb-5 flex w-full items-center gap-3 rounded-xl bg-surface-2 p-3 text-left hover:bg-surface-3"
-      >
-        <span className="grid h-9 w-9 place-items-center rounded-lg bg-cardio-soft text-cardio"><Watch size={18} /></span>
-        <span className="flex-1">
-          <span className="block font-medium">Apple Watch</span>
-          <span className="block text-xs text-muted">Pulsaciones y calorías con Atajos</span>
-        </span>
-        <ChevronRight size={18} className="text-faint" />
-      </Link>
 
       <section className="space-y-3">
         <div>

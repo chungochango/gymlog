@@ -5,7 +5,6 @@ import Dashboard from './pages/Dashboard'
 import Exercises from './pages/Exercises'
 import History from './pages/History'
 import Nutrition from './pages/Nutrition'
-import WatchGuide from './pages/WatchGuide'
 import StartWorkout from './pages/StartWorkout'
 import Workout from './pages/Workout'
 import WorkoutDetail from './pages/WorkoutDetail'
@@ -19,7 +18,6 @@ export default function App() {
         <Route path="workout" element={<Workout />} />
         <Route path="exercises" element={<Exercises />} />
         <Route path="nutrition" element={<Nutrition />} />
-        <Route path="watch" element={<WatchGuide />} />
         <Route path="achievements" element={<Achievements />} />
         <Route path="history" element={<History />} />
         <Route path="history/:id" element={<WorkoutDetail />} />

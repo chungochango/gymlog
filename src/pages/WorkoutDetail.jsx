@@ -5,7 +5,7 @@ import { useApp } from '../context/AppContext'
 import { formatClock, formatDate, formatDuration, formatNumber, formatVolume } from '../lib/format'
 import { bestSet, setVolume, workoutDuration, workoutSetCount, workoutVolume } from '../lib/stats'
 import { entry1RM } from '../lib/coach'
-import WatchImport from '../components/WatchImport'
+import WatchStats from '../components/WatchStats'
 import { Button, Card, MuscleTag, PageHeader, Stat } from '../components/ui'
 
 export default function WorkoutDetail() {
@@ -52,12 +52,10 @@ export default function WorkoutDetail() {
         {formatDate(workout.startedAt, { hour: '2-digit', minute: '2-digit' })} – {formatDate(workout.endedAt, { hour: '2-digit', minute: '2-digit' })} · {formatClock(workoutDuration(workout))}
       </p>
 
-      <WatchImport
+      <WatchStats
         className="mt-4"
-        start={workout.startedAt}
-        end={workout.endedAt}
         data={workout.watch}
-        onApply={(watch) => actions.updateWorkout(workout.id, { watch: { ...watch, importedAt: Date.now() } })}
+        onSave={(watch) => actions.updateWorkout(workout.id, { watch })}
       />
 
       <div className="mt-6 space-y-3">

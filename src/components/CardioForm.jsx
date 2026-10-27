@@ -4,7 +4,6 @@ import { useApp } from '../context/AppContext'
 import { ACTIVITIES, INTENSITIES, estimateKcal } from '../data/activities'
 import { parseNum, toLocalInput } from '../lib/format'
 import Modal from './Modal'
-import WatchImport from './WatchImport'
 import { Button, Input, cn } from './ui'
 
 const DURATION_PRESETS = [30, 45, 60, 90, 120]
@@ -23,7 +22,7 @@ export default function CardioForm({ entry, initialActivity = 'padel', onClose }
   const [intensity, setIntensity] = useState(entry?.intensity ?? 'moderate')
   const [kcal, setKcal] = useState(entry && !entry.kcalEstimated ? String(entry.kcal) : '')
   const [avgHr, setAvgHr] = useState(entry?.avgHr != null ? String(entry.avgHr) : '')
-  const [maxHr, setMaxHr] = useState(entry?.maxHr ?? null)
+  const [maxHr, setMaxHr] = useState(entry?.maxHr != null ? String(entry.maxHr) : '')
   const [notes, setNotes] = useState(entry?.notes ?? '')
 
   const def = ACTIVITIES.find((a) => a.id === activity)
@@ -45,7 +44,7 @@ export default function CardioForm({ entry, initialActivity = 'padel', onClose }
       kcal: manualKcal ?? estimate,
       kcalEstimated: manualKcal == null,
       avgHr: parseNum(avgHr),
-      maxHr,
+      maxHr: parseNum(maxHr),
       notes: notes.trim(),
     })
     onClose()
@@ -140,13 +139,23 @@ export default function CardioForm({ entry, initialActivity = 'padel', onClose }
         </div>
       </Field>
 
+      <div className="grid grid-cols-3 gap-2">
+        <Field label="Calorías">
+          <Input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value.replace(/\D/g, ''))} placeholder={`≈ ${estimate}`} className="px-3 text-center" />
+        </Field>
+        <Field label="FC media">
+          <Input inputMode="numeric" value={avgHr} onChange={(e) => setAvgHr(e.target.value.replace(/\D/g, ''))} placeholder="lpm" className="px-3 text-center" />
+        </Field>
+        <Field label="FC máx">
+          <Input inputMode="numeric" value={maxHr} onChange={(e) => setMaxHr(e.target.value.replace(/\D/g, ''))} placeholder="lpm" className="px-3 text-center" />
+        </Field>
+      </div>
+      <p className="mt-2 text-xs text-faint">
+        Del Apple Watch: app Fitness → Entrenamientos → toca la sesión y usa las «Calorías activas». Si no pones
+        calorías se estiman con tu peso ({state.settings.bodyWeight} kg), la duración y la intensidad.
+      </p>
+
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Calorías (kcal)">
-          <Input inputMode="numeric" value={kcal} onChange={(e) => setKcal(e.target.value.replace(/\D/g, ''))} placeholder={`≈ ${estimate}`} />
-        </Field>
-        <Field label="FC media (lpm)">
-          <Input inputMode="numeric" value={avgHr} onChange={(e) => setAvgHr(e.target.value.replace(/\D/g, ''))} placeholder="Opcional" />
-        </Field>
         {def.distance && (
           <Field label="Distancia (km)">
             <Input inputMode="decimal" value={distance} onChange={(e) => setDistance(e.target.value.replace(/[^\d.,]/g, ''))} placeholder="Opcional" />
@@ -156,22 +165,6 @@ export default function CardioForm({ entry, initialActivity = 'padel', onClose }
           <Input type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} className="px-3" />
         </Field>
       </div>
-      {valid && (
-        <WatchImport
-          className="mt-4"
-          start={new Date(when).getTime()}
-          end={new Date(when).getTime() + mins * 60000}
-          data={parseNum(avgHr) || maxHr ? { avgHr: parseNum(avgHr), maxHr, kcal: parseNum(kcal) } : null}
-          onApply={(d) => {
-            if (d.avgHr) setAvgHr(String(d.avgHr))
-            if (d.maxHr) setMaxHr(d.maxHr)
-            if (d.kcal) setKcal(String(d.kcal))
-          }}
-        />
-      )}
-      <p className="mt-2 text-xs text-faint">
-        Si no pones calorías se estiman con tu peso ({state.settings.bodyWeight} kg), la duración y la intensidad.
-      </p>
 
       <Field label="Notas">
         <Input value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ganamos 6-4 6-3" />
