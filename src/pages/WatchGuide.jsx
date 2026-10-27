@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ChevronLeft, ClipboardPaste, HeartPulse, Watch } from 'lucide-react'
 import { SHORTCUT_NAME, diagnoseWatchText, parseWatchText, shortcutUrl } from '../lib/watch'
@@ -10,24 +10,25 @@ const STEPS = [
   <>Añade <b>Dividir texto</b>. Entrada: <Var>Entrada del atajo</Var>. Separador: <b>Personalizado</b> → <Code>|</Code></>,
   <>Añade <b>Obtener ítem de la lista</b> (búscalo escribiendo «lista») → <b>Primer ítem</b> de <Var>Texto dividido</Var>.</>,
   <>Añade <b>Ajustar fecha</b>: <b>Restar</b> <Var>Ítem de la lista</Var> <b>minutos desde</b> <Var>Fecha actual</Var>. Luego <b>Definir variable</b> con el nombre <Code>Inicio</Code>.</>,
-  <>Añade otra vez <b>Obtener ítem de la lista</b> → <b>Último ítem</b> de <Var>Texto dividido</Var>, y repite <b>Ajustar fecha</b> igual que antes. Guárdalo con <b>Definir variable</b> como <Code>Fin</Code>.</>,
+  <>Añade otra vez <b>Obtener ítem de la lista</b> → <b>Último ítem</b>. ¡Ojo! Toca su entrada y elige <Var>Texto dividido</Var> (por defecto coge la fecha anterior). Después otro <b>Ajustar fecha</b>: <b>Restar</b> el <Var>Ítem de la lista</Var> <b>de este paso</b> (el último ítem, no el del paso 3) <b>minutos desde</b> <Var>Fecha actual</Var>. Guárdalo con <b>Definir variable</b> como <Code>Fin</Code>.</>,
   <>Añade <b>Buscar muestras de salud</b> (aparece como «Buscar Muestras médicas») con <b>todas</b> estas condiciones: Tipo es <b>Frecuencia cardíaca</b> · Fecha de inicio es <b>posterior a</b> <Var>Inicio</Var> · Fecha de inicio es <b>anterior a</b> <Var>Fin</Var>.</>,
   <>Añade <b>Calcular estadísticas</b> → <b>Media</b> de <Var>Muestras médicas</Var>, luego <b>Redondear número</b> y <b>Definir variable</b> <Code>Media</Code>.</>,
   <>Añade otra vez <b>Calcular estadísticas</b> → <b>Máximo</b> (toca la entrada y elige <Var>Muestras médicas</Var>), <b>Redondear número</b> y <b>Definir variable</b> <Code>Maximo</Code>.</>,
   <>Añade otra <b>Buscar muestras de salud</b> con Tipo <b>Energía en actividad</b> y las mismas dos condiciones de fecha. Después <b>Calcular estadísticas</b> → <b>Suma</b>, <b>Redondear número</b> y <b>Definir variable</b> <Code>Kcal</Code>.</>,
-  <>Añade <b>Texto</b>: escribe <Code>GYMLOG;</Code> e inserta la <b>variable</b> <Var>Media</Var>, escribe <Code>;</Code>, variable <Var>Maximo</Var>, <Code>;</Code>, variable <Var>Kcal</Var>. Las variables se eligen en la fila de encima del teclado y salen como etiquetas de color: no las escribas a mano.</>,
+  <>Añade <b>Texto</b>: escribe <Code>GYMLOG;</Code> e inserta la <b>variable</b> <Var>Media</Var>, escribe <Code>;</Code>, variable <Var>Maximo</Var>, <Code>;</Code>, variable <Var>Kcal</Var>, <Code>;</Code>, variable <Var>Inicio</Var>, <Code>;</Code>, variable <Var>Fin</Var>. Las variables se eligen en la fila de encima del teclado y salen como etiquetas de color: no las escribas a mano.</>,
   <>Añade <b>Copiar al portapapeles</b> con ese <Var>Texto</Var>. Opcional: <b>Mostrar notificación</b> «Vuelve a GymLog y pulsa Pegar datos».</>,
 ]
 
 export default function WatchGuide() {
   const [waiting, setWaiting] = useState(false)
   const [result, setResult] = useState(null)
+  const testWindow = useRef(null)
 
   const paste = async () => {
     try {
       const text = await navigator.clipboard.readText()
       const parsed = parseWatchText(text)
-      setResult(parsed ? { ok: true, ...parsed } : { ok: false, text: diagnoseWatchText(text) })
+      setResult(parsed ? { ok: true, ...parsed } : { ok: false, text: diagnoseWatchText(text, testWindow.current) })
     } catch {
       setResult({ ok: false, text: 'Este navegador no deja leer el portapapeles. Funciona en la versión publicada (https).' })
     }
@@ -79,7 +80,10 @@ export default function WatchGuide() {
         ) : (
           <a
             href={shortcutUrl(Date.now() - 24 * 60 * 60000, Date.now())}
-            onClick={() => {
+            onClick={(e) => {
+              const now = Date.now()
+              testWindow.current = { start: now - 24 * 60 * 60000, end: now }
+              e.currentTarget.href = shortcutUrl(testWindow.current.start, now, now)
               setWaiting(true)
               setResult(null)
             }}

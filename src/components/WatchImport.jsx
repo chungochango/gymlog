@@ -27,7 +27,7 @@ export default function WatchImport({ start, end, data, onApply, className }) {
       const text = await navigator.clipboard.readText()
       const parsed = parseWatchText(text)
       if (parsed) apply(parsed)
-      else setError(diagnoseWatchText(text))
+      else setError(diagnoseWatchText(text, { start, end }))
     } catch {
       setError('No se pudo leer el portapapeles. Introduce los datos a mano.')
       setManual(true)
@@ -92,7 +92,9 @@ export default function WatchImport({ start, end, data, onApply, className }) {
           ) : (
             <a
               href={shortcutUrl(start, end)}
-              onClick={() => {
+              onClick={(e) => {
+                // "Minutes ago" must be measured now, not when the form was rendered.
+                e.currentTarget.href = shortcutUrl(start, end)
                 setWaiting(true)
                 setError(null)
               }}
