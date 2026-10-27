@@ -8,9 +8,9 @@ import { Button, Card, PageHeader } from '../components/ui'
 const STEPS = [
   <>Abre <b>Atajos</b>, pulsa <b>+</b> y nombra el atajo exactamente <Code>{SHORTCUT_NAME}</Code>.</>,
   <>Añade <b>Dividir texto</b>. Entrada: <Var>Entrada del atajo</Var>. Separador: <b>Personalizado</b> → <Code>|</Code></>,
-  <>Añade <b>Obtener ítem de la lista</b> (búscalo escribiendo «lista») → <b>Primer ítem</b> de <Var>Texto dividido</Var>.</>,
-  <>Añade <b>Ajustar fecha</b>: <b>Restar</b> <Var>Ítem de la lista</Var> <b>minutos desde</b> <Var>Fecha actual</Var>. Luego <b>Definir variable</b> con el nombre <Code>Inicio</Code>.</>,
-  <>Añade otra vez <b>Obtener ítem de la lista</b> → <b>Último ítem</b>. ¡Ojo! Toca su entrada y elige <Var>Texto dividido</Var> (por defecto coge la fecha anterior). Después otro <b>Ajustar fecha</b>: <b>Restar</b> el <Var>Ítem de la lista</Var> <b>de este paso</b> (el último ítem, no el del paso 3) <b>minutos desde</b> <Var>Fecha actual</Var>. Guárdalo con <b>Definir variable</b> como <Code>Fin</Code>.</>,
+  <>Añade <b>Obtener ítem de la lista</b> (búscalo escribiendo «lista») → <b>Primer ítem</b> de <Var>Texto dividido</Var>. Justo debajo, <b>Definir variable</b> con el nombre <Code>MinInicio</Code>.</>,
+  <>Añade <b>Obtener ítem de la lista</b> → <b>Último ítem</b>. Toca su entrada y elige <Var>Texto dividido</Var> (por defecto coge otra cosa). Debajo, <b>Definir variable</b> <Code>MinFin</Code>.</>,
+  <>Añade <b>Ajustar fecha</b>: <b>Restar</b> <Var>MinInicio</Var> <b>minutos desde</b> <Var>Fecha actual</Var> y <b>Definir variable</b> <Code>Inicio</Code>. Luego otro <b>Ajustar fecha</b>: <b>Restar</b> <Var>MinFin</Var> <b>minutos desde</b> <Var>Fecha actual</Var> y <b>Definir variable</b> <Code>Fin</Code>. Usa las variables con nombre, no «Ítem de la lista».</>,
   <>Añade <b>Buscar muestras de salud</b> (aparece como «Buscar Muestras médicas») con <b>todas</b> estas condiciones: Tipo es <b>Frecuencia cardíaca</b> · Fecha de inicio es <b>posterior a</b> <Var>Inicio</Var> · Fecha de inicio es <b>anterior a</b> <Var>Fin</Var>.</>,
   <>Añade <b>Calcular estadísticas</b> → <b>Media</b> de <Var>Muestras médicas</Var>, luego <b>Redondear número</b> y <b>Definir variable</b> <Code>Media</Code>.</>,
   <>Añade otra vez <b>Calcular estadísticas</b> → <b>Máximo</b> (toca la entrada y elige <Var>Muestras médicas</Var>), <b>Redondear número</b> y <b>Definir variable</b> <Code>Maximo</Code>.</>,

@@ -46,7 +46,13 @@ export function diagnoseWatchText(text, expected) {
   const [, , , , from = '', to = ''] = raw.split(';').map((p) => p.trim())
   if (from && to) {
     if (from === to) {
-      return `El Atajo buscó entre «${from}» y «${to}»: Inicio y Fin son la misma hora, así que no hay nada en medio.${want} Revisa el paso 5 de la guía: el segundo «Ajustar fecha» debe usar el ítem del segundo «Obtener ítem de la lista» (Último ítem).`
+      // Same hour as now: the shortcut got no input. Same as the start: step 5 reuses the first item.
+      const hm = /(\d{1,2})[:.](\d{2})/.exec(from)
+      const near = (t) => hm && Math.abs(((+hm[1] * 60 + +hm[2]) - (new Date(t).getHours() * 60 + new Date(t).getMinutes()) + 1440) % 1440) <= 2
+      const why = near(Date.now())
+        ? 'Es la hora actual: el Atajo no está recibiendo los minutos desde GymLog. Revisa que «Dividir» use «Entrada de atajo» y que los dos «Restar» usen las variables MinInicio y MinFin (pasos 3–5 de la guía).'
+        : 'El segundo «Restar» está usando los minutos del primero. Usa variables con nombre MinInicio y MinFin (pasos 3–5 de la guía).'
+      return `El Atajo buscó entre «${from}» y «${to}»: Inicio y Fin son la misma hora, así que no hay nada en medio.${want} ${why}`
     }
     return `El Atajo buscó entre «${from}» y «${to}» y no encontró datos.${want} Si esas horas no coinciden, revisa los pasos 3–5 de la guía. Si coinciden, activa en Ajustes → Salud → Acceso a datos y dispositivos → Atajos: Frecuencia cardíaca y Energía en actividad.`
   }
