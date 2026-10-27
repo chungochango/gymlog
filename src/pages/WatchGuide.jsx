@@ -70,7 +70,7 @@ export default function WatchGuide() {
       </p>
 
       <h2 className="mt-8 mb-1 text-lg font-bold tracking-tight">Probarlo</h2>
-      <p className="mb-3 text-sm text-muted">Lee los datos de la última hora. Si llevas el reloj puesto, deberías ver tu pulso.</p>
+      <p className="mb-3 text-sm text-muted">Lee los datos de las últimas 24 horas: si has llevado el reloj en algún momento, deberías ver tu pulso y tus calorías del día.</p>
       <Card className="p-4">
         {waiting ? (
           <Button variant="primary" className="w-full" onClick={paste}>
@@ -78,7 +78,7 @@ export default function WatchGuide() {
           </Button>
         ) : (
           <a
-            href={shortcutUrl(Date.now() - 60 * 60000, Date.now())}
+            href={shortcutUrl(Date.now() - 24 * 60 * 60000, Date.now())}
             onClick={() => {
               setWaiting(true)
               setResult(null)
