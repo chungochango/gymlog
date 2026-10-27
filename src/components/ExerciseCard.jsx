@@ -1,15 +1,28 @@
-import { Check, Plus, Timer, Trash2, X } from 'lucide-react'
+import { Check, Lightbulb, Plus, Timer, Trash2, TriangleAlert, X } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { REST_PRESETS } from '../data/defaults'
 import { primeAudio } from '../lib/alerts'
+import { suggestNext } from '../lib/coach'
 import { formatNumber, formatSeconds } from '../lib/format'
 import { Card, MuscleTag, cn } from './ui'
 
 /** One exercise inside the live session: its sets table plus per-exercise rest time. */
 export default function ExerciseCard({ entry, previous }) {
-  const { actions, exerciseById } = useApp()
+  const { state, actions, exerciseById } = useApp()
   const exercise = exerciseById.get(entry.exerciseId)
   const doneCount = entry.sets.filter((s) => s.done).length
+  const tip = suggestNext(state.workouts, entry.exerciseId, exercise?.muscle)
+
+  // Fill every pending set that is still empty with the suggested weight and reps.
+  const applyTip = () => {
+    for (const s of entry.sets) {
+      if (s.done) continue
+      const patch = {}
+      if (s.weight === '') patch.weight = String(tip.weight).replace('.', ',')
+      if (s.reps === '') patch.reps = String(tip.reps)
+      if (Object.keys(patch).length) actions.updateSet(entry.id, s.id, patch)
+    }
+  }
 
   const toggleDone = (set) => {
     const done = !set.done
@@ -69,6 +82,28 @@ export default function ExerciseCard({ entry, previous }) {
           </button>
         </div>
       </div>
+
+      {tip && (
+        <div
+          className={cn(
+            'mx-3 mb-3 flex items-center gap-2 rounded-xl px-3 py-2 text-sm',
+            tip.stalled ? 'bg-amber-400/10 text-amber-300' : 'bg-accent-soft text-accent',
+          )}
+        >
+          {tip.stalled ? <TriangleAlert size={16} className="shrink-0" /> : <Lightbulb size={16} className="shrink-0" />}
+          <span className="min-w-0 flex-1">
+            <span className="font-semibold tabular">
+              Hoy: {tip.weight ? `${formatNumber(tip.weight)} kg × ` : ''}{tip.reps} reps
+            </span>
+            <span className="block text-xs opacity-80">{tip.reason}</span>
+          </span>
+          {entry.sets.some((s) => !s.done && (s.weight === '' || s.reps === '')) && (
+            <button type="button" onClick={applyTip} className="shrink-0 rounded-lg bg-black/20 px-2.5 py-1.5 text-xs font-semibold">
+              Usar
+            </button>
+          )}
+        </div>
+      )}
 
       <div className="px-2">
         <div className="grid grid-cols-[2rem_1fr_4.25rem_4.25rem_2.75rem_1.75rem] items-center gap-1.5 px-1 pb-1.5 text-[11px] font-medium uppercase tracking-wide text-faint">

@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { Apple, Dumbbell, History, Home, Play } from 'lucide-react'
 import { useApp } from '../context/AppContext'
@@ -15,6 +16,9 @@ const NAV = [
 export default function Layout() {
   const { state } = useApp()
   const { pathname } = useLocation()
+
+  // Each screen opens at the top instead of keeping the previous scroll position.
+  useEffect(() => window.scrollTo(0, 0), [pathname])
 
   return (
     <div className="min-h-dvh">

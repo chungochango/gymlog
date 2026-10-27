@@ -3,13 +3,14 @@ import { useApp } from '../context/AppContext'
 import { MACROS } from '../data/nutrition'
 import { formatNumber, parseNum } from '../lib/format'
 import Modal from './Modal'
-import { Button, Input } from './ui'
+import { Button, Input, cn } from './ui'
 
 /** Body weight and daily nutrition goals. Rendered only while open. */
 export default function GoalsForm({ onClose }) {
   const { state, actions } = useApp()
   const { goals, bodyWeight } = state.settings
   const [weight, setWeight] = useState(String(bodyWeight))
+  const [weeklyGoal, setWeeklyGoal] = useState(state.settings.weeklyGoal ?? 3)
   const [values, setValues] = useState({
     kcal: String(goals.kcal),
     protein: String(goals.protein),
@@ -26,6 +27,7 @@ export default function GoalsForm({ onClose }) {
   const save = () => {
     actions.updateSettings({
       bodyWeight: w || bodyWeight,
+      weeklyGoal,
       goals: Object.fromEntries(Object.entries(values).map(([k, v]) => [k, parseNum(v) ?? goals[k]])),
     })
     onClose()
@@ -43,6 +45,26 @@ export default function GoalsForm({ onClose }) {
         <Input inputMode="decimal" value={weight} onChange={(e) => setWeight(e.target.value.replace(/[^\d.,]/g, ''))} />
         <span className="mt-1.5 block text-xs text-faint">Se usa para estimar las calorías del cardio.</span>
       </label>
+
+      <div className="mt-5">
+        <span className="mb-1.5 block text-sm font-medium text-muted">Objetivo semanal (sesiones de fuerza + cardio)</span>
+        <div className="grid grid-cols-6 gap-1.5">
+          {[1, 2, 3, 4, 5, 6].map((n) => (
+            <button
+              key={n}
+              type="button"
+              onClick={() => setWeeklyGoal(n)}
+              className={cn(
+                'h-11 rounded-xl text-sm font-semibold tabular transition-colors',
+                weeklyGoal === n ? 'bg-accent text-accent-ink' : 'bg-surface-2 text-muted',
+              )}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+        <span className="mt-1.5 block text-xs text-faint">Cumplirlo cada semana mantiene tu racha.</span>
+      </div>
 
       <div className="my-5 h-px bg-line" />
 

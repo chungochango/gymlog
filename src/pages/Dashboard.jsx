@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Apple, CalendarCheck, ChevronRight, Clock, Flame, HeartPulse, Play, Settings, Weight } from 'lucide-react'
+import { Apple, CalendarCheck, ChevronRight, Clock, Flame, HeartPulse, Medal, Play, Settings, Weight } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { useNow } from '../hooks/useNow'
 import { dayKey, formatClock, formatDuration, formatNumber, formatVolume, relativeDay } from '../lib/format'
 import { bestSet, cardioSummary, summary, weekActivity, workoutDuration, workoutSetCount, workoutVolume } from '../lib/stats'
 import { MACROS, mealForNow, sumNutrition } from '../data/nutrition'
+import { achievements, weeklyStreak } from '../lib/achievements'
+import BodyWeightCard from '../components/BodyWeightCard'
+import RecoveryCard from '../components/RecoveryCard'
 import CardioCard from '../components/CardioCard'
 import CardioForm from '../components/CardioForm'
 import FoodForm from '../components/FoodForm'
@@ -41,6 +44,8 @@ export default function Dashboard() {
   const lastCardio = state.cardio[0]
   const { goals } = state.settings
   const eaten = sumNutrition(state.foods.filter((f) => f.day === dayKey()))
+  const streak = weeklyStreak(state.workouts, state.cardio, state.settings.weeklyGoal ?? 3)
+  const medals = achievements(state).filter((a) => a.unlocked).length
 
   return (
     <>
@@ -112,6 +117,23 @@ export default function Dashboard() {
         </div>
       </Card>
 
+      <Link to="/achievements" className="mt-3 block">
+        <Card className="flex items-center gap-3 p-3 transition-colors hover:bg-surface-2">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-accent text-accent-ink">
+            <Flame size={20} />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-sm font-semibold">
+              {streak.current === 1 ? '1 semana' : `${streak.current} semanas`} de racha
+            </span>
+            <span className="block text-xs text-muted tabular">
+              Esta semana {streak.thisWeek}/{streak.goal} · <Medal size={12} className="inline -mt-0.5" /> {medals} medallas
+            </span>
+          </span>
+          <ChevronRight size={18} className="text-faint" />
+        </Card>
+      </Link>
+
       <div className="mt-4 grid grid-cols-2 gap-3">
         <Stat icon={CalendarCheck} label="Fuerza (semana)" value={stats.thisWeek} />
         <Stat icon={HeartPulse} label="Cardio (semana)" value={cardio.weekMinutes ? formatDuration(cardio.weekMinutes * 60000) : '—'} />
@@ -143,6 +165,9 @@ export default function Dashboard() {
           </div>
         </Card>
       </Link>
+
+      <RecoveryCard className="mt-4" />
+      <BodyWeightCard className="mt-4" />
 
       <section className="mt-8">
         <div className="mb-3 flex items-center justify-between">

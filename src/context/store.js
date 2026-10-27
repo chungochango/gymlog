@@ -153,6 +153,23 @@ export function reducer(state, action) {
     case 'food/remove':
       return { ...state, foods: state.foods.filter((f) => f.id !== action.id) }
 
+    // Body weight log: one entry per day, newest first
+    case 'bodyWeight/save': {
+      const others = state.bodyWeights.filter((b) => b.day !== action.entry.day)
+      const bodyWeights = [...others, action.entry].sort((a, b) => b.day.localeCompare(a.day))
+      // The latest weigh-in also feeds calorie estimates.
+      const latest = bodyWeights[0]
+      return { ...state, bodyWeights, settings: { ...state.settings, bodyWeight: latest.kg } }
+    }
+    case 'bodyWeight/remove':
+      return { ...state, bodyWeights: state.bodyWeights.filter((b) => b.id !== action.id) }
+
+    // Saved meals: reusable groups of foods
+    case 'savedMeal/save':
+      return { ...state, savedMeals: [...state.savedMeals.filter((m) => m.id !== action.meal.id), action.meal] }
+    case 'savedMeal/remove':
+      return { ...state, savedMeals: state.savedMeals.filter((m) => m.id !== action.id) }
+
     // Backup restore replaces every persisted slice at once.
     case 'data/import':
       return { ...state, ...action.data, rest: null }

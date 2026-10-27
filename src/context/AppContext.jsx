@@ -16,11 +16,13 @@ function init() {
     settings: { ...DEFAULT_SETTINGS, ...load('settings', {}) },
     cardio: load('cardio', []),
     foods: load('foods', []),
+    bodyWeights: load('bodyWeights', []),
+    savedMeals: load('savedMeals', []),
   }
 }
 
 // Slices included in a backup file, in the same shape they are persisted.
-export const BACKUP_KEYS = ['exercises', 'routines', 'workouts', 'active', 'settings', 'cardio', 'foods']
+export const BACKUP_KEYS = ['exercises', 'routines', 'workouts', 'active', 'settings', 'cardio', 'foods', 'bodyWeights', 'savedMeals']
 
 export function AppProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, undefined, init)
@@ -34,6 +36,8 @@ export function AppProvider({ children }) {
   useEffect(() => save('settings', state.settings), [state.settings])
   useEffect(() => save('cardio', state.cardio), [state.cardio])
   useEffect(() => save('foods', state.foods), [state.foods])
+  useEffect(() => save('bodyWeights', state.bodyWeights), [state.bodyWeights])
+  useEffect(() => save('savedMeals', state.savedMeals), [state.savedMeals])
 
   const value = useMemo(() => {
     const exerciseById = new Map(state.exercises.map((e) => [e.id, e]))
@@ -86,6 +90,19 @@ export function AppProvider({ children }) {
       removeCardio: (id) => dispatch({ type: 'cardio/remove', id }),
       saveFood: (entry) => dispatch({ type: 'food/save', entry: { id: uid(), createdAt: Date.now(), ...entry } }),
       removeFood: (id) => dispatch({ type: 'food/remove', id }),
+
+      logBodyWeight: (kg, day) => dispatch({ type: 'bodyWeight/save', entry: { id: uid(), day, kg } }),
+      removeBodyWeight: (id) => dispatch({ type: 'bodyWeight/remove', id }),
+      saveMeal: ({ name, items }) =>
+        dispatch({
+          type: 'savedMeal/save',
+          meal: {
+            id: uid(),
+            name: name.trim(),
+            items: items.map(({ name: n, kcal, protein, carbs, fat }) => ({ name: n, kcal, protein, carbs, fat })),
+          },
+        }),
+      removeSavedMeal: (id) => dispatch({ type: 'savedMeal/remove', id }),
 
       exportData: () => ({
         app: 'gymlog',

@@ -43,6 +43,7 @@ export const DEFAULT_SETTINGS = {
   vibrate: true,
   sound: true,
   bodyWeight: 75,
+  weeklyGoal: 3, // sessions (strength + cardio) per week, drives the streak
   goals: { kcal: 2200, protein: 140, carbs: 250, fat: 70 },
 }
 

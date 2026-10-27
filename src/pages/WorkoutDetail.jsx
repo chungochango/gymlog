@@ -4,6 +4,7 @@ import { BookmarkPlus, Check, ChevronLeft, Trash2, Trophy } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { formatClock, formatDate, formatDuration, formatNumber, formatVolume } from '../lib/format'
 import { bestSet, setVolume, workoutDuration, workoutSetCount, workoutVolume } from '../lib/stats'
+import { entry1RM } from '../lib/coach'
 import WatchImport from '../components/WatchImport'
 import { Button, Card, MuscleTag, PageHeader, Stat } from '../components/ui'
 
@@ -73,6 +74,9 @@ export default function WorkoutDetail() {
                   <div className="mt-1.5 flex items-center gap-2">
                     {ex && <MuscleTag muscle={ex.muscle} />}
                     <span className="text-xs text-faint tabular">{formatVolume(volume)}</span>
+                    {entry1RM(entry) > 0 && (
+                      <span className="text-xs text-faint tabular">· 1RM est. {formatNumber(Math.round(entry1RM(entry) * 2) / 2)} kg</span>
+                    )}
                   </div>
                 </div>
                 {isPR && (

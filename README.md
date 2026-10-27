@@ -79,4 +79,8 @@ src/
 - **Al finalizar** solo se guardan las series marcadas; los ejercicios sin series completadas se descartan.
 - **Cardio**: si no indicas calorías se estiman con MET × intensidad × peso corporal × horas.
 - **Nutrición**: calorías restantes = objetivo − comidas + calorías del cardio de ese día. Si no pones calorías a un alimento se calculan con los macros (4/4/9).
+- **Entrenador**: sugiere el peso de hoy con doble progresión (6–10 reps, luego sube 2,5 kg o 5 kg en pierna) y avisa tras 3 sesiones sin mejorar el 1RM estimado (Epley). `src/lib/coach.js`
+- **Recuperación muscular**: colorea cada grupo según las horas desde su última serie (< 24 h, 24–48 h, > 48 h) y sugiere qué entrenar. `src/lib/recovery.js`
+- **Logros y racha**: medallas calculadas a partir de los datos, racha de semanas cumpliendo el objetivo semanal y resumen mensual/anual. `src/lib/achievements.js`
+- **Escáner**: códigos de barras con la cámara (ZXing, cargado bajo demanda) y nutrición de Open Food Facts. `src/lib/openfoodfacts.js`
 - **Datos**: claves `gymlog:v1:*` en `localStorage`. Ajustes → Copia de seguridad permite exportar e importar todo en un JSON (hazlo antes de cambiar de dirección o de móvil).

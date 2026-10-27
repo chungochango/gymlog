@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ChevronLeft, ChevronRight, Plus, Target } from 'lucide-react'
+import { BookmarkPlus, ChevronLeft, ChevronRight, Plus, Target } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { MACROS, MEALS, mealForNow, sumNutrition } from '../data/nutrition'
 import { dayKey, dayKeyToTime, formatDate, formatNumber, relativeDay, shiftDay } from '../lib/format'
@@ -11,7 +11,7 @@ import { Button, Card, PageHeader, cn } from '../components/ui'
 const RING = 2 * Math.PI * 52
 
 export default function Nutrition() {
-  const { state } = useApp()
+  const { state, actions } = useApp()
   const [params, setParams] = useSearchParams()
   const today = dayKey()
   const day = params.get('day') ?? today
@@ -114,6 +114,20 @@ export default function Nutrition() {
                 <Icon size={18} className="text-muted" />
                 <span className="flex-1 font-semibold">{name}</span>
                 {mealKcal > 0 && <span className="text-sm text-muted tabular">{formatNumber(mealKcal)} kcal</span>}
+                {items.length > 0 && (
+                  <button
+                    type="button"
+                    aria-label={`Guardar ${name} como comida`}
+                    title="Guardar como comida"
+                    onClick={() => {
+                      const mealName = prompt('Nombre para esta comida guardada:', `Mi ${name.toLowerCase()}`)
+                      if (mealName?.trim()) actions.saveMeal({ name: mealName, items })
+                    }}
+                    className="grid h-8 w-8 place-items-center rounded-lg bg-surface-2 text-muted hover:text-accent"
+                  >
+                    <BookmarkPlus size={16} />
+                  </button>
+                )}
                 <button
                   type="button"
                   aria-label={`Añadir a ${name}`}

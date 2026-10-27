@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
-import { History, Trash2 } from 'lucide-react'
+import { Bookmark, History, ScanBarcode, Trash2, X } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { MACROS, MEALS } from '../data/nutrition'
 import { formatNumber, parseNum } from '../lib/format'
+import BarcodeScanner from './BarcodeScanner'
 import Modal from './Modal'
 import { Button, Input, cn } from './ui'
 
@@ -13,6 +14,7 @@ export default function FoodForm({ entry, day, initialMeal, onClose }) {
   const { state, actions } = useApp()
   const [meal, setMeal] = useState(entry?.meal ?? initialMeal)
   const [name, setName] = useState(entry?.name ?? '')
+  const [scanning, setScanning] = useState(false)
   const [values, setValues] = useState({
     kcal: numOrEmpty(entry?.kcal),
     protein: numOrEmpty(entry?.protein),
@@ -97,6 +99,47 @@ export default function FoodForm({ entry, day, initialMeal, onClose }) {
         ))}
       </div>
 
+      {!entry && (
+        <>
+          <Button className="mt-4 w-full" onClick={() => setScanning(true)}>
+            <ScanBarcode size={18} /> Escanear código de barras
+          </Button>
+
+          {state.savedMeals.length > 0 && (
+            <div className="mt-4">
+              <p className="mb-1.5 flex items-center gap-1 text-xs font-medium text-faint"><Bookmark size={13} /> Mis comidas</p>
+              <ul className="space-y-1">
+                {state.savedMeals.map((m) => (
+                  <li key={m.id} className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        m.items.forEach((item) => actions.saveFood({ ...item, day, meal }))
+                        onClose()
+                      }}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl bg-accent-soft px-3 py-2.5 text-left text-sm hover:bg-accent/20"
+                    >
+                      <span className="truncate font-medium">{m.name}</span>
+                      <span className="shrink-0 text-muted tabular">
+                        {m.items.length} · {m.items.reduce((s, i) => s + i.kcal, 0)} kcal
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Borrar ${m.name}`}
+                      onClick={() => confirm(`¿Borrar la comida guardada «${m.name}»?`) && actions.removeSavedMeal(m.id)}
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-faint hover:text-danger"
+                    >
+                      <X size={15} />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+
       <label className="mt-4 block">
         <span className="mb-1.5 block text-sm font-medium text-muted">Alimento</span>
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Pechuga de pollo 200 g" autoFocus={!entry} />
@@ -142,6 +185,16 @@ export default function FoodForm({ entry, day, initialMeal, onClose }) {
         ))}
       </div>
       <p className="mt-2 text-xs text-faint">Si dejas las calorías vacías se calculan con los macros (4/4/9 kcal por gramo).</p>
+
+      {scanning && (
+        <BarcodeScanner
+          onClose={() => setScanning(false)}
+          onPick={(food) => {
+            setName(food.name)
+            setValues({ kcal: String(food.kcal), protein: numOrEmpty(food.protein), carbs: numOrEmpty(food.carbs), fat: numOrEmpty(food.fat) })
+          }}
+        />
+      )}
     </Modal>
   )
 }

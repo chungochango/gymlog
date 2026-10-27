@@ -4,6 +4,7 @@ import { History as HistoryIcon, TrendingDown, TrendingUp } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { formatDate, formatNumber, formatVolume, plural } from '../lib/format'
 import { exerciseFrequency, maxWeightHistory, workoutVolume } from '../lib/stats'
+import { oneRMHistory } from '../lib/coach'
 import CardioCard from '../components/CardioCard'
 import CardioForm from '../components/CardioForm'
 import ProgressChart from '../components/ProgressChart'
@@ -20,6 +21,7 @@ export default function History() {
   const { state, exerciseById } = useApp()
   const [params, setParams] = useSearchParams()
   const [filter, setFilter] = useState('all')
+  const [metric, setMetric] = useState('max') // 'max' | '1rm'
   const [editing, setEditing] = useState(null)
 
   // Exercises with recorded history, most trained first.
@@ -30,8 +32,8 @@ export default function History() {
   const requested = params.get('exercise')
   const selectedId = requested && exerciseById.has(requested) ? requested : tracked[0]
   const points = useMemo(
-    () => (selectedId ? maxWeightHistory(state.workouts, selectedId) : []),
-    [state.workouts, selectedId],
+    () => (!selectedId ? [] : metric === '1rm' ? oneRMHistory(state.workouts, selectedId) : maxWeightHistory(state.workouts, selectedId)),
+    [state.workouts, selectedId, metric],
   )
   const delta = points.length > 1 ? points.at(-1).weight - points[0].weight : 0
   const pr = points.reduce((m, p) => Math.max(m, p.weight), 0)
@@ -71,7 +73,18 @@ export default function History() {
       {selectedId && (
         <Card className="p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-muted">Peso máximo</p>
+            <div className="flex rounded-lg bg-surface-2 p-0.5 text-xs font-medium">
+              {[['max', 'Peso máx'], ['1rm', '1RM est.']].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setMetric(id)}
+                  className={cn('rounded-md px-2.5 py-1.5', metric === id ? 'bg-surface-3 text-ink' : 'text-faint')}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
             <select
               aria-label="Ejercicio"
               value={selectedId}

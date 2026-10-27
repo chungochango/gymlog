@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { formatDate, formatNumber } from '../lib/format'
 
 const W = 320
@@ -8,6 +8,7 @@ const PAD = { top: 16, right: 12, bottom: 22, left: 12 }
 /** Minimal SVG line chart of max weight per session. */
 export default function ProgressChart({ points }) {
   const [hover, setHover] = useState(null)
+  const gradientId = `chart-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
   if (points.length === 0) {
     return <p className="py-10 text-center text-sm text-muted">Aún no hay datos para este ejercicio.</p>
@@ -36,7 +37,7 @@ export default function ProgressChart({ points }) {
       <div className="mb-3 flex items-baseline justify-between">
         <div>
           <span className="text-3xl font-bold tabular tracking-tight">{formatNumber(active.weight)}</span>
-          <span className="ml-1 text-sm text-muted">kg × {active.reps}</span>
+          <span className="ml-1 text-sm text-muted">kg{active.reps != null && ` × ${active.reps}`}</span>
         </div>
         <span className="text-xs text-faint">{formatDate(active.date)}</span>
       </div>
@@ -45,7 +46,7 @@ export default function ProgressChart({ points }) {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full h-auto touch-none select-none"
         role="img"
-        aria-label={`Evolución del peso máximo: de ${formatNumber(points[0].weight)} a ${formatNumber(points.at(-1).weight)} kg`}
+        aria-label={`Evolución: de ${formatNumber(points[0].weight)} a ${formatNumber(points.at(-1).weight)} kg`}
         onPointerLeave={() => setHover(null)}
         onPointerMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect()
@@ -58,13 +59,13 @@ export default function ProgressChart({ points }) {
         }}
       >
         <defs>
-          <linearGradient id="progress-fill" x1="0" x2="0" y1="0" y2="1">
+          <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
             <stop offset="0%" stopColor="var(--color-accent)" stopOpacity="0.28" />
             <stop offset="100%" stopColor="var(--color-accent)" stopOpacity="0" />
           </linearGradient>
         </defs>
         <line x1={PAD.left} x2={W - PAD.right} y1={PAD.top + innerH} y2={PAD.top + innerH} stroke="var(--color-line)" />
-        {points.length > 1 && <path d={area} fill="url(#progress-fill)" />}
+        {points.length > 1 && <path d={area} fill={`url(#${gradientId})`} />}
         <path d={line} fill="none" stroke="var(--color-accent)" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
         {xy.map((p, i) => (
           <circle
