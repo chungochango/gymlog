@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { BookmarkPlus, Check, ChevronLeft, Trash2, Trophy } from 'lucide-react'
+import { BookmarkPlus, Check, ChevronLeft, Send, Trash2, Trophy } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { formatClock, formatDate, formatDuration, formatNumber, formatVolume } from '../lib/format'
 import { bestSet, setVolume, workoutDuration, workoutSetCount, workoutVolume } from '../lib/stats'
 import { entry1RM } from '../lib/coach'
+import { reportFileName, shareReport, workoutReport } from '../lib/report'
 import WatchStats from '../components/WatchStats'
 import { Button, Card, MuscleTag, PageHeader, Stat } from '../components/ui'
 
@@ -13,6 +14,7 @@ export default function WorkoutDetail() {
   const { state, actions, exerciseById } = useApp()
   const navigate = useNavigate()
   const [savedRoutine, setSavedRoutine] = useState(false)
+  const [sent, setSent] = useState(null)
 
   const workout = state.workouts.find((w) => w.id === id)
   if (!workout) return <Navigate to="/history" replace />
@@ -29,6 +31,11 @@ export default function WorkoutDetail() {
   const saveAsRoutine = () => {
     actions.addRoutine({ name: workout.name, exerciseIds: workout.exercises.map((e) => e.exerciseId) })
     setSavedRoutine(true)
+  }
+
+  const sendToClaude = async () => {
+    const result = await shareReport(workoutReport(state, exerciseById, workout.id), reportFileName(workout))
+    setSent(result)
   }
 
   return (
@@ -111,7 +118,19 @@ export default function WorkoutDetail() {
         })}
       </div>
 
-      <div className="mt-6 grid grid-cols-2 gap-2">
+      <Button variant="primary" size="lg" className="mt-6 w-full" onClick={sendToClaude}>
+        <Send size={18} /> Enviar a Claude para analizar
+      </Button>
+      {sent && sent !== 'cancelled' && (
+        <p className="mt-2 px-1 text-xs text-muted">
+          {sent === 'shared'
+            ? 'Listo. En el ordenador dile a Claude «analiza el entrenamiento de hoy».'
+            : 'Informe descargado. Pásalo al ordenador y dile a Claude «analiza el entrenamiento de hoy».'}
+        </p>
+      )}
+      <p className="mt-2 px-1 text-xs text-faint">Mándatelo por WhatsApp (chat contigo mismo) para que llegue al ordenador.</p>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
         <Button onClick={saveAsRoutine} disabled={savedRoutine}>
           <BookmarkPlus size={16} /> {savedRoutine ? 'Rutina guardada' : 'Guardar como rutina'}
         </Button>
