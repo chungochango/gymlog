@@ -8,6 +8,7 @@ import { oneRMHistory } from '../lib/coach'
 import CardioCard from '../components/CardioCard'
 import CardioForm from '../components/CardioForm'
 import ProgressChart from '../components/ProgressChart'
+import WeeklyReportCard from '../components/WeeklyReportCard'
 import WorkoutCard from '../components/WorkoutCard'
 import { Card, Chip, EmptyState, PageHeader, cn } from '../components/ui'
 
@@ -69,6 +70,8 @@ export default function History() {
   return (
     <>
       <PageHeader subtitle={plural(total, 'sesión', 'sesiones')} title="Historial" />
+
+      <WeeklyReportCard className="mb-4" />
 
       {selectedId && (
         <Card className="p-4">
