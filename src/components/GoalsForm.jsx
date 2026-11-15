@@ -31,7 +31,7 @@ export default function GoalsForm({ onClose }) {
 
   const w = parseNum(weight) ?? 0
   const profileOut = { ...profile, age: parseNum(profile.age), height: parseNum(profile.height) }
-  const burn = baseBurn({ bodyWeight: w, profile: profileOut })
+  const burn = baseBurn({ bodyWeight: w, profile: profileOut, measuredBmr: state.settings.measuredBmr })
   const kcalGoal = parseNum(values.kcal) ?? 0
   const macroKcal = Math.round(
     (parseNum(values.protein) ?? 0) * 4 + (parseNum(values.carbs) ?? 0) * 4 + (parseNum(values.fat) ?? 0) * 9,
@@ -109,7 +109,7 @@ export default function GoalsForm({ onClose }) {
 
       {burn ? (
         <div className="mt-4 rounded-xl bg-surface-2 p-3 text-sm tabular">
-          <div className="flex justify-between"><span className="text-muted">Metabolismo basal (TMB)</span><span className="font-semibold">{formatNumber(burn.basal)} kcal</span></div>
+          <div className="flex justify-between"><span className="text-muted">Metabolismo basal (TMB{burn.source === 'scale' ? ', báscula' : ''})</span><span className="font-semibold">{formatNumber(burn.basal)} kcal</span></div>
           <div className="mt-1 flex justify-between"><span className="text-muted">Gasto diario sin ejercicio</span><span className="font-semibold">{formatNumber(burn.total)} kcal</span></div>
           <p className="mt-2 text-xs text-faint">Lo que quemas en el día sin hacer nada especial. El ejercicio que registres se suma aparte.</p>
         </div>

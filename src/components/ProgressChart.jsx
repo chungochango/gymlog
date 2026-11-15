@@ -6,7 +6,7 @@ const H = 140
 const PAD = { top: 16, right: 12, bottom: 22, left: 12 }
 
 /** Minimal SVG line chart of max weight per session. */
-export default function ProgressChart({ points }) {
+export default function ProgressChart({ points, unit = 'kg' }) {
   const [hover, setHover] = useState(null)
   const gradientId = `chart-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
 
@@ -37,7 +37,7 @@ export default function ProgressChart({ points }) {
       <div className="mb-3 flex items-baseline justify-between">
         <div>
           <span className="text-3xl font-bold tabular tracking-tight">{formatNumber(active.weight)}</span>
-          <span className="ml-1 text-sm text-muted">kg{active.reps != null && ` × ${active.reps}`}</span>
+          <span className="ml-1 text-sm text-muted">{unit}{active.reps != null && ` × ${active.reps}`}</span>
         </div>
         <span className="text-xs text-faint">{formatDate(active.date)}</span>
       </div>
@@ -46,7 +46,7 @@ export default function ProgressChart({ points }) {
         viewBox={`0 0 ${W} ${H}`}
         className="w-full h-auto touch-none select-none"
         role="img"
-        aria-label={`Evolución: de ${formatNumber(points[0].weight)} a ${formatNumber(points.at(-1).weight)} kg`}
+        aria-label={`Evolución: de ${formatNumber(points[0].weight)} a ${formatNumber(points.at(-1).weight)} ${unit}`}
         onPointerLeave={() => setHover(null)}
         onPointerMove={(e) => {
           const rect = e.currentTarget.getBoundingClientRect()

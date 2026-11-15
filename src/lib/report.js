@@ -1,6 +1,7 @@
 // Plain-text report of a workout plus its context (history, recovery, nutrition, profile),
 // meant to be sent to the computer and analysed by Claude.
 import { ACTIVITIES } from '../data/activities'
+import { BODY_METRICS } from '../data/bodyMetrics'
 import { sumNutrition } from '../data/nutrition'
 import { entry1RM, suggestNext } from './coach'
 import { dayKey, formatDate, plural, shiftDay } from './format'
@@ -11,6 +12,11 @@ const DAY = 24 * 60 * 60000
 const r1 = (n) => Math.round(n * 10) / 10
 const hm = (t) => new Date(t).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
 const date = (t) => formatDate(t, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+/** "76 kg (grasa 22.7 %, músculo 56.2 kg…)" for a weigh-in. */
+const weighIn = (b) => {
+  const parts = BODY_METRICS.filter((m) => b[m.id] != null).map((m) => `${m.short.toLowerCase()} ${b[m.id]}${m.unit ? ` ${m.unit}` : ''}`)
+  return `${b.kg} kg${parts.length ? ` (${parts.join(', ')})` : ''}`
+}
 const sets = (entry) => entry.sets.map((s) => `${r1(s.weight)}×${s.reps}`).join(', ')
 
 /** Markdown report for one workout. */
@@ -99,7 +105,10 @@ export function workoutReport(state, exerciseById, workoutId) {
   }
 
   const weights = state.bodyWeights.slice(0, 6)
-  if (weights.length) line(`- Peso corporal (reciente → antiguo): ${weights.map((b) => `${b.day} ${b.kg} kg`).join(', ')}`)
+  if (weights.length) {
+    line('- Peso corporal (reciente → antiguo):')
+    for (const b of weights) line(`  - ${b.day}: ${weighIn(b)}`)
+  }
 
   const day = dayKey(workout.startedAt)
   const days = Array.from({ length: 7 }, (_, i) => shiftDay(day, -i))
@@ -230,9 +239,15 @@ export function weeklyReport(state, exerciseById, start) {
   if (inWeek.length || lastBefore) {
     line()
     line('## Peso corporal')
-    if (lastBefore) line(`- Último antes de la semana: ${lastBefore.day} ${lastBefore.kg} kg`)
-    for (const b of [...inWeek].reverse()) line(`- ${b.day}: ${b.kg} kg`)
-    if (inWeek.length && lastBefore) line(`- Cambio: ${r1(inWeek[0].kg - lastBefore.kg)} kg`)
+    if (lastBefore) line(`- Último antes de la semana: ${lastBefore.day} ${weighIn(lastBefore)}`)
+    for (const b of [...inWeek].reverse()) line(`- ${b.day}: ${weighIn(b)}`)
+    if (inWeek.length && lastBefore) {
+      const change = [`peso ${r1(inWeek[0].kg - lastBefore.kg)} kg`]
+      for (const m of BODY_METRICS) {
+        if (inWeek[0][m.id] != null && lastBefore[m.id] != null) change.push(`${m.short.toLowerCase()} ${r1(inWeek[0][m.id] - lastBefore[m.id])}${m.unit ? ` ${m.unit}` : ''}`)
+      }
+      line(`- Cambio: ${change.join(', ')}`)
+    }
   }
 
   // Every strength session with each exercise compared to its previous time.

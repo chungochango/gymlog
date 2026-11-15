@@ -96,7 +96,8 @@ export function AppProvider({ children }) {
       saveFood: (entry) => dispatch({ type: 'food/save', entry: { id: uid(), createdAt: Date.now(), ...entry } }),
       removeFood: (id) => dispatch({ type: 'food/remove', id }),
 
-      logBodyWeight: (kg, day) => dispatch({ type: 'bodyWeight/save', entry: { id: uid(), day, kg } }),
+      logBodyWeight: (kg, day, composition = {}) =>
+        dispatch({ type: 'bodyWeight/save', entry: { id: uid(), day, kg, ...composition } }),
       removeBodyWeight: (id) => dispatch({ type: 'bodyWeight/remove', id }),
       saveMeal: ({ name, items }) =>
         dispatch({

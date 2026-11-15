@@ -25,10 +25,11 @@ export function bmr({ sex, age, height }, weight) {
 /** Calories burned in a day without counting logged exercise (BMR × everyday activity). */
 export function baseBurn(settings) {
   const profile = settings.profile ?? {}
-  const basal = bmr(profile, settings.bodyWeight)
+  // A smart scale's BMR uses body composition, so it wins over the formula when there is one.
+  const basal = settings.measuredBmr || bmr(profile, settings.bodyWeight)
   if (basal == null) return null
   const level = ACTIVITY_LEVELS.find((l) => l.id === profile.activity) ?? ACTIVITY_LEVELS[0]
-  return { basal, total: Math.round(basal * level.factor) }
+  return { basal, total: Math.round(basal * level.factor), source: settings.measuredBmr ? 'scale' : 'formula' }
 }
 
 /** Calories burned exercising on a day: cardio entries plus strength sessions with Apple Watch data. */

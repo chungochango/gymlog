@@ -40,6 +40,13 @@ export function finalizeWorkout(active) {
   return { ...active, exercises, endedAt: Date.now() }
 }
 
+/** Stores the log and syncs the profile: latest weight and the scale's latest BMR feed calorie estimates. */
+function withBodyWeights(state, bodyWeights) {
+  const settings = { ...state.settings, measuredBmr: bodyWeights.find((b) => b.bmr)?.bmr ?? null }
+  if (bodyWeights.length) settings.bodyWeight = bodyWeights[0].kg
+  return { ...state, bodyWeights, settings }
+}
+
 export function reducer(state, action) {
   switch (action.type) {
     // Exercise library
@@ -156,13 +163,10 @@ export function reducer(state, action) {
     // Body weight log: one entry per day, newest first
     case 'bodyWeight/save': {
       const others = state.bodyWeights.filter((b) => b.day !== action.entry.day)
-      const bodyWeights = [...others, action.entry].sort((a, b) => b.day.localeCompare(a.day))
-      // The latest weigh-in also feeds calorie estimates.
-      const latest = bodyWeights[0]
-      return { ...state, bodyWeights, settings: { ...state.settings, bodyWeight: latest.kg } }
+      return withBodyWeights(state, [...others, action.entry].sort((a, b) => b.day.localeCompare(a.day)))
     }
     case 'bodyWeight/remove':
-      return { ...state, bodyWeights: state.bodyWeights.filter((b) => b.id !== action.id) }
+      return withBodyWeights(state, state.bodyWeights.filter((b) => b.id !== action.id))
 
     // Saved meals: reusable groups of foods
     case 'savedMeal/save':
