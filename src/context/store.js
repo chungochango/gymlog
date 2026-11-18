@@ -82,7 +82,10 @@ export function reducer(state, action) {
     case 'workout/update':
       return {
         ...state,
-        workouts: state.workouts.map((w) => (w.id === action.id ? { ...w, ...action.patch } : w)),
+        // Re-sorted because the date can change (newest first).
+        workouts: state.workouts
+          .map((w) => (w.id === action.id ? { ...w, ...action.patch } : w))
+          .sort((a, b) => b.startedAt - a.startedAt),
       }
     case 'workout/delete':
       return { ...state, workouts: state.workouts.filter((w) => w.id !== action.id) }

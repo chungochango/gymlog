@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
-import { BookmarkPlus, Check, ChevronLeft, Send, Trash2, Trophy } from 'lucide-react'
+import { BookmarkPlus, CalendarClock, Check, ChevronLeft, Send, Trash2, Trophy } from 'lucide-react'
 import { useApp } from '../context/AppContext'
-import { formatClock, formatDate, formatDuration, formatNumber, formatVolume } from '../lib/format'
+import { formatClock, formatDate, formatDuration, formatNumber, formatVolume, parseNum, toLocalInput } from '../lib/format'
 import { bestSet, setVolume, workoutDuration, workoutSetCount, workoutVolume } from '../lib/stats'
 import { entry1RM } from '../lib/coach'
 import { reportFileName, shareReport, workoutReport } from '../lib/report'
+import Modal from '../components/Modal'
 import WatchStats from '../components/WatchStats'
-import { Button, Card, MuscleTag, PageHeader, Stat } from '../components/ui'
+import { Button, Card, Input, MuscleTag, PageHeader, Stat } from '../components/ui'
 
 export default function WorkoutDetail() {
   const { id } = useParams()
@@ -15,6 +16,7 @@ export default function WorkoutDetail() {
   const navigate = useNavigate()
   const [savedRoutine, setSavedRoutine] = useState(false)
   const [sent, setSent] = useState(null)
+  const [editingTime, setEditingTime] = useState(false)
 
   const workout = state.workouts.find((w) => w.id === id)
   if (!workout) return <Navigate to="/history" replace />
@@ -55,9 +57,21 @@ export default function WorkoutDetail() {
         <Stat label="Volumen" value={formatVolume(workoutVolume(workout))} />
         <Stat label="Series" value={workoutSetCount(workout)} />
       </div>
-      <p className="mt-2 px-1 text-xs text-faint tabular">
-        {formatDate(workout.startedAt, { hour: '2-digit', minute: '2-digit' })} – {formatDate(workout.endedAt, { hour: '2-digit', minute: '2-digit' })} · {formatClock(workoutDuration(workout))}
-      </p>
+      <div className="mt-2 flex items-center justify-between gap-2 px-1">
+        <p className="text-xs text-faint tabular">
+          {formatDate(workout.startedAt, { hour: '2-digit', minute: '2-digit' })} – {formatDate(workout.endedAt, { hour: '2-digit', minute: '2-digit' })} · {formatClock(workoutDuration(workout))}
+        </p>
+        <button type="button" onClick={() => setEditingTime(true)} className="flex shrink-0 items-center gap-1 text-xs font-medium text-muted hover:text-ink">
+          <CalendarClock size={14} /> Cambiar fecha
+        </button>
+      </div>
+      {editingTime && (
+        <TimeForm
+          workout={workout}
+          onClose={() => setEditingTime(false)}
+          onSave={(startedAt, endedAt) => actions.updateWorkout(workout.id, { startedAt, endedAt })}
+        />
+      )}
 
       <WatchStats
         className="mt-4"
@@ -147,5 +161,48 @@ export default function WorkoutDetail() {
         </Button>
       </div>
     </>
+  )
+}
+
+/** Moves a session to another date/time, e.g. one logged the day after. */
+function TimeForm({ workout, onClose, onSave }) {
+  const [when, setWhen] = useState(toLocalInput(workout.startedAt))
+  const [minutes, setMinutes] = useState(String(Math.max(1, Math.round(workoutDuration(workout) / 60000))))
+  const start = new Date(when).getTime()
+  const mins = parseNum(minutes) ?? 0
+  const valid = !Number.isNaN(start) && start <= Date.now() && mins > 0 && mins <= 600
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Fecha y duración"
+      footer={
+        <Button
+          variant="primary"
+          size="lg"
+          className="w-full"
+          disabled={!valid}
+          onClick={() => {
+            onSave(start, start + mins * 60000)
+            onClose()
+          }}
+        >
+          Guardar
+        </Button>
+      }
+    >
+      <div className="grid grid-cols-2 gap-3">
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-muted">Empezó</span>
+          <Input type="datetime-local" value={when} max={toLocalInput(Date.now())} onChange={(e) => setWhen(e.target.value)} className="px-3" />
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-sm font-medium text-muted">Duración (min)</span>
+          <Input inputMode="numeric" value={minutes} onChange={(e) => setMinutes(e.target.value.replace(/\D/g, ''))} />
+        </label>
+      </div>
+      <p className="mt-2 text-xs text-faint">Para apuntar un entreno de otro día: regístralo normal, finalízalo y cámbiale aquí la fecha.</p>
+    </Modal>
   )
 }
