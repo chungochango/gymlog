@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronDown, Plus, Scale, TrendingDown, TrendingUp, X } from 'lucide-react'
+import { ChevronDown, Pencil, Plus, Scale, Trash2, TrendingDown, TrendingUp } from 'lucide-react'
 import { useApp } from '../context/AppContext'
 import { BODY_METRICS, latestMetric } from '../data/bodyMetrics'
 import { dayKey, dayKeyToTime, formatDate, formatNumber, parseNum } from '../lib/format'
@@ -108,15 +108,27 @@ function Tile({ label, value, delta, good }) {
 
 const toInput = (v) => (v != null ? String(v).replace('.', ',') : '')
 
+const compositionInputs = (entry) => Object.fromEntries(BODY_METRICS.map((m) => [m.id, toInput(entry?.[m.id])]))
+
+/** New weigh-in, or edits an existing one when `entry` is set. Tapping a past weigh-in switches to editing it. */
 function WeightForm({ onClose }) {
   const { state, actions } = useApp()
   const last = state.bodyWeights[0]
+  const [entry, setEntry] = useState(null) // weigh-in being edited
   const [kg, setKg] = useState(toInput(last?.kg ?? state.settings.bodyWeight))
   const [day, setDay] = useState(dayKey())
-  const [showMore, setShowMore] = useState(BODY_METRICS.some((m) => last?.[m.id] != null))
+  const [showMore, setShowMore] = useState(false)
   const [values, setValues] = useState({})
   const value = parseNum(kg)
   const valid = value > 20 && value < 400 && day
+
+  const edit = (b) => {
+    setEntry(b)
+    setKg(toInput(b.kg))
+    setDay(b.day)
+    setValues(compositionInputs(b))
+    setShowMore(BODY_METRICS.some((m) => b[m.id] != null))
+  }
 
   const save = () => {
     const composition = {}
@@ -124,19 +136,34 @@ function WeightForm({ onClose }) {
       const n = parseNum(values[m.id])
       if (n > 0 && n <= m.max) composition[m.id] = Math.round(n * 10) / 10
     }
+    // Moving a weigh-in to another day must not leave the old one behind.
+    if (entry && entry.day !== day) actions.removeBodyWeight(entry.id)
     actions.logBodyWeight(Math.round(value * 10) / 10, day, composition)
     onClose()
+  }
+
+  const remove = (b) => {
+    if (!confirm(`¿Borrar el pesaje del ${formatDate(dayKeyToTime(b.day), { day: 'numeric', month: 'long' })} (${formatNumber(b.kg)} kg)?`)) return
+    actions.removeBodyWeight(b.id)
+    if (entry?.id === b.id) onClose()
   }
 
   return (
     <Modal
       open
       onClose={onClose}
-      title="Registrar peso"
+      title={entry ? 'Editar pesaje' : 'Registrar peso'}
       footer={
-        <Button variant="primary" size="lg" className="w-full" disabled={!valid} onClick={save}>
-          Guardar
-        </Button>
+        <div className="flex gap-2">
+          {entry && (
+            <Button variant="danger" size="lg" aria-label="Borrar pesaje" onClick={() => remove(entry)}>
+              <Trash2 size={18} />
+            </Button>
+          )}
+          <Button variant="primary" size="lg" className="flex-1" disabled={!valid} onClick={save}>
+            Guardar
+          </Button>
+        </div>
       }
     >
       <div className="grid grid-cols-2 gap-3">
@@ -168,34 +195,46 @@ function WeightForm({ onClose }) {
               <Input
                 inputMode="decimal"
                 value={values[m.id] ?? ''}
-                placeholder={toInput(last?.[m.id]) || '—'}
+                placeholder={(!entry && toInput(last?.[m.id])) || '—'}
                 onChange={(e) => setValues((v) => ({ ...v, [m.id]: e.target.value.replace(/[^\d.,]/g, '') }))}
                 className="h-11 px-3"
               />
             </label>
           ))}
           <p className="col-span-2 text-xs text-faint">
-            Copia los que te dé tu báscula; deja vacíos los que no tengas. En gris, tu última medición. El metabolismo basal de la báscula sustituye al calculado.
+            Copia los que te dé tu báscula; deja vacíos los que no tengas.{!entry && ' En gris, tu última medición.'} El metabolismo basal de la báscula sustituye al calculado.
           </p>
         </div>
       )}
-      <p className="mt-3 text-xs text-faint">Si ya hay un registro ese día, se sustituye.</p>
+      {!entry && <p className="mt-3 text-xs text-faint">Si ya hay un registro ese día, se sustituye.</p>}
 
       {state.bodyWeights.length > 0 && (
-        <ul className="mt-5 divide-y divide-line rounded-xl bg-surface-2">
-          {state.bodyWeights.slice(0, 8).map((b) => (
-            <li key={b.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
-              <span className="text-muted">{formatDate(dayKeyToTime(b.day))}</span>
-              <span className="flex items-center gap-2">
-                {b.fat != null && <span className="text-xs text-faint tabular">{formatNumber(b.fat)} % grasa</span>}
-                <span className="font-semibold tabular">{formatNumber(b.kg)} kg</span>
-                <button type="button" aria-label="Borrar" onClick={() => actions.removeBodyWeight(b.id)} className="text-faint hover:text-danger">
-                  <X size={15} />
+        <div className="mt-6">
+          <p className="mb-2 text-sm font-semibold">Pesajes anteriores</p>
+          <p className="mb-2 text-xs text-faint">Toca uno para corregirlo, o la papelera para borrarlo.</p>
+          <ul className="divide-y divide-line rounded-xl bg-surface-2">
+            {state.bodyWeights.slice(0, 12).map((b) => (
+              <li key={b.id} className={cn('flex items-center gap-1 pr-1', entry?.id === b.id && 'bg-accent-soft')}>
+                <button type="button" onClick={() => edit(b)} className="flex min-w-0 flex-1 items-center justify-between gap-2 py-3 pl-3 text-left text-sm">
+                  <span className="text-muted">{formatDate(dayKeyToTime(b.day))}</span>
+                  <span className="flex items-center gap-2">
+                    {b.fat != null && <span className="text-xs text-faint tabular">{formatNumber(b.fat)} % grasa</span>}
+                    <span className="font-semibold tabular">{formatNumber(b.kg)} kg</span>
+                    <Pencil size={13} className="text-faint" />
+                  </span>
                 </button>
-              </span>
-            </li>
-          ))}
-        </ul>
+                <button
+                  type="button"
+                  aria-label={`Borrar pesaje del ${b.day}`}
+                  onClick={() => remove(b)}
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-lg text-faint hover:bg-danger-soft hover:text-danger"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </Modal>
   )
